@@ -1,0 +1,49 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+
+public class EnemyGun : MonoBehaviour
+{
+    [SerializeField] private EnemyGunShooter _shooter;
+    [SerializeField] private EnemyGunReactor _reactor;
+    [SerializeField] private int _chanceToDropDice;
+    [SerializeField] private DiceD6[] _possibleDices;
+    [SerializeField] private int[] _weights;
+
+    private void Awake()
+    {
+        _reactor.OnDestroyGun += OnDestroyGun;
+    }
+
+    private void OnDestroyGun()
+    {
+        if (Random.Range(0, 100) < _chanceToDropDice)
+        {
+            _reactor.OnDestroyGun -= OnDestroyGun;
+
+            int rand = Random.Range(0, _weights.Sum() + 1);
+            int index = -1;
+
+            for (int c = 0, s = 0; c < _weights.Length; c++)
+            {
+                if (rand < s)
+                {
+                    index = c - 1;
+                    break;
+                }
+
+                s += _weights[c];
+            }
+            if (index == -1)
+                index = _weights.Length - 1;
+
+
+            Instantiate(
+                _possibleDices[index],
+                transform.position,
+                Quaternion.identity);
+        }
+        Destroy(gameObject);
+    }
+}
